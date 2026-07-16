@@ -1,0 +1,77 @@
+{
+  "welcome": {
+    "title": "Создайте свою QR-визитку",
+    "subtitle": "Современное приложение для создания",
+    "subtitleHighlight": "персональных QR-кодов",
+    "subtitleEnd": "с контактной информацией",
+    "featureUniversalityTitle": "🎯 Универсальность",
+    "featureUniversalityDesc": "Багажные бирки, визитки, наклейки для техники",
+    "featureCompatibilityTitle": "📱 Совместимость",
+    "featureCompatibilityDesc": "Работает с любыми устройствами и сканерами",
+    "featureSecurityTitle": "🔒 Безопасность",
+    "featureSecurityDesc": "Данные обрабатываются только на вашем устройстве",
+    "featureSpeedTitle": "⚡ Быстрота",
+    "featureSpeedDesc": "Создание QR-кода за несколько секунд",
+    "startButton": "Начать создание"
+  },
+  "nav": {
+    "next": "Далее",
+    "back": "Назад",
+    "backArrow": "← Назад",
+    "stepProgress": "Шаг {{current}} из {{total}}",
+    "stepFinal": "Шаг 4 из 4 • Завершено"
+  },
+  "versions": {
+    "screenTitle": "Выберите версию vCard",
+    "selectVersion": "Выбрать версию {{version}}",
+    "moreFields": "+{{count}} больше",
+    "v21Subtitle": "Простая совместимая визитка для оффлайн-бирки и старых устройств",
+    "v30Subtitle": "Рекомендуемый формат для Android, iOS и email-клиентов",
+    "v40Subtitle": "Поддержка соцсетей, GPS и современных полей",
+    "fields": {
+      "name": "Имя",
+      "phone": "Телефон",
+      "email": "Email",
+      "org": "Компания/Организация",
+      "note": "Примечание",
+      "social": "Соцсети (URL через запятую)",
+      "geo": "GPS (широта,долгота через запятую)",
+      "impp": "Мессенджеры (через запятую)"
+    }
+  },
+  "form": {
+    "heading": "Заполните данные для {{version}}",
+    "placeholderRequired": "{{label}} (обязательно)",
+    "placeholder": "{{label}}",
+    "errRequired": "{{label}} обязательно",
+    "errEmail": "Некорректный email",
+    "errPhone": "Некорректный телефон",
+    "submit": "Создать"
+  },
+  "result": {
+    "heading": "🎉 Ваша QR-визитка готова!",
+    "description": "Теперь вы можете скопировать или скачать ваш QR-код",
+    "qrTooltip": "Нажмите, чтобы скопировать QR-код как изображение",
+    "qrHelper": "Нажмите на QR-код, чтобы скопировать его как изображение с рамкой",
+    "copyImage": "Скопировать",
+    "copyImageFull": "Скопировать как изображение",
+    "copying": "Копирование...",
+    "downloadPng": "Скачать PNG",
+    "downloadImage": "Скачать изображение",
+    "saveImage": "Сохранить изображение",
+    "saveQrTitle": "Сохранение QR-кода",
+    "saveQrHintMobile": "📱 Нажмите и удерживайте изображение выше, затем выберите «Сохранить изображение» или «Копировать».",
+    "saveQrHintDesktop": "💻 Или нажмите правой кнопкой мыши → «Сохранить картинку как…».",
+    "close": "Закрыть",
+    "copyText": "Текст vCard",
+    "copyTextFull": "Скопировать текст",
+    "restart": "Создать новую визитку",
+    "alertCopiedImage": "QR-код скопирован как изображение в буфер обмена!",
+    "alertCopiedText": "QR-код скопирован как текст в буфер обмена (изображение не поддерживается)",
+    "alertCopyFailed": "Не удалось скопировать QR-код",
+    "alertDownloaded": "QR-код загружен как изображение!",
+    "alertDownloadFailed": "Не удалось скачать QR-код",
+    "alertVCopied": "Текст vCard скопирован в буфер обмена!",
+    "alertVCopyFailed": "Не удалось скопировать текст"
+  }
+}

@@ -1,4 +1,24 @@
 // Функция для копирования QR-кода как изображения с рамкой
+export const isTelegramWebApp = () => {
+  try {
+    return !!window.Telegram?.WebApp;
+  } catch {
+    return false;
+  }
+};
+
+export const generateQRDataURL = async (qrValue, size = 600) => {
+  const QRCode = await import('qrcode');
+  return QRCode.toDataURL(qrValue, {
+    width: size,
+    margin: 2,
+    color: {
+      dark: '#000000',
+      light: '#FFFFFF',
+    },
+  });
+};
+
 export const copyQRCodeAsImage = async (elementId, qrValue, size = 240) => {
   try {
     // Сначала пытаемся скопировать HTML элемент с рамкой

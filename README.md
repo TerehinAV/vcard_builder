@@ -2,7 +2,7 @@
 
 QR vCard Generator is a browser-based React application for creating a QR code that contains contact information in vCard format. The application supports vCard 2.1, 3.0, and 4.0, and keeps all entered data in the browser for the current session.
 
-The user interface is currently in Russian.
+The user interface is available in Russian and English, with automatic language and color-scheme detection when the app is opened inside a Telegram WebApp.
 
 ## Features
 
@@ -17,6 +17,32 @@ The user interface is currently in Russian.
 - A separate action for copying the generated vCard text.
 - Responsive styling for desktop and mobile layouts.
 - Client-side processing with no server submission.
+- Bilingual UI (Russian and English) with Telegram-aware language detection.
+- Light/dark theme that follows the Telegram client or the system preference.
+
+## Localization
+
+The UI ships in two locales: `ru` (default) and `en`. Translations live in `src/locales/{ru,en}.json` and are consumed via `react-i18next`.
+
+Language is resolved at startup in the following order:
+
+1. `window.Telegram.WebApp.initDataUnsafe.user.languageCode` (when opened inside Telegram)
+2. `navigator.language` (first segment before `-`)
+3. `ru` (fallback)
+
+Unknown Telegram language codes fall back to English. There is no manual language switcher; the language is always driven by the host environment.
+
+## Dark Theme
+
+Theme tokens are defined as CSS custom properties in `src/index.css` under `:root` (light) and overridden under a `.dark` class on the `<html>` element. Tailwind v4 class-based dark mode is enabled via the `@custom-variant dark (&:where(.dark, .dark *));` directive, so `dark:` utilities work as expected.
+
+The active theme is resolved by `src/hooks/useTheme.js` in the following priority:
+
+1. `window.Telegram.WebApp.colorScheme` (when opened inside Telegram), kept in sync via the `themeChanged` event
+2. `window.matchMedia('(prefers-color-scheme: dark)')` (outside Telegram), kept in sync via the `change` event
+3. Light theme (fallback)
+
+The QR code canvas itself always renders on a white background — this is intentional and required for reliable scanning.
 
 ## Application Flow
 
@@ -89,6 +115,12 @@ When copying the QR code as an image, the application first uses `html2canvas` t
 
 PNG downloads are generated with `qrcode` in the browser. The separate **vCard text** action writes the raw generated vCard content to the clipboard.
 
+### Telegram WebApp
+
+When the app is opened inside a Telegram WebApp, the WebView sandbox blocks both `navigator.clipboard.write()` for images and the `<a download>` attribute for files. To work around this without a backend, the "Copy as image" and "Download PNG" buttons are collapsed into a single **Save image** action that opens a modal showing the QR code as a large PNG (`<img>` rendered from a `qrcode`-generated data URL). The user then long-presses (mobile) or right-clicks (desktop) the image and selects the native "Save Image" / "Copy" menu entry.
+
+The vCard-text copy action continues to work inside Telegram, because `navigator.clipboard.writeText()` is permitted by the WebView sandbox.
+
 ## Technology Stack
 
 - React 18
@@ -96,9 +128,11 @@ PNG downloads are generated with `qrcode` in the browser. The separate **vCard t
 - Vite 5
 - Tailwind CSS 4
 - PostCSS and Autoprefixer
+- `react-i18next` and `i18next` for localization
 - `qrcode.react` for the displayed SVG QR code
 - `qrcode` for canvas-based PNG generation
 - `html2canvas` for capturing the displayed QR container
+- Telegram WebApp SDK (loaded via CDN script in `index.html`) for language and theme detection
 
 ## Project Structure
 
@@ -114,6 +148,7 @@ vcard_builder/
 └── src/
     ├── main.jsx
     ├── QRVCardApp.jsx
+    ├── i18n.js
     ├── index.css
     ├── components/
     │   ├── FinalStep.jsx
@@ -123,20 +158,30 @@ vcard_builder/
     │   ├── VersionSelector.jsx
     │   ├── WelcomeStep.jsx
     │   └── WizardForm.jsx
+    ├── hooks/
+    │   ├── useTelegram.js
+    │   └── useTheme.js
+    ├── locales/
+    │   ├── en.json
+    │   └── ru.json
     └── utils/
         └── qrUtils.js
 ```
 
 Key responsibilities:
 
-- `src/main.jsx` mounts the React application.
-- `src/QRVCardApp.jsx` renders the wizard.
+- `src/main.jsx` mounts the React application and initializes i18n.
+- `src/QRVCardApp.jsx` renders the wizard and activates the theme hook.
+- `src/i18n.js` configures `react-i18next` and resolves the initial language.
 - `src/components/WizardForm.jsx` owns the current step, selected version, and final QR value.
 - `src/components/VersionSelector.jsx` defines the supported versions and their form fields.
 - `src/components/QRForm.jsx` validates input and builds the vCard text.
 - `src/components/FinalStep.jsx` renders the result and exposes copy, download, and restart actions.
+- `src/hooks/useTelegram.js` reads language and color scheme from the Telegram WebApp SDK safely.
+- `src/hooks/useTheme.js` toggles the `.dark` class on `<html>` based on Telegram or system preference.
+- `src/locales/{ru,en}.json` hold the translation resources.
 - `src/utils/qrUtils.js` implements image clipboard and PNG download operations.
-- `src/index.css` contains Tailwind imports and the application styles.
+- `src/index.css` contains Tailwind imports, the `@custom-variant dark` directive, and the design-token CSS variables for both themes.
 
 Generated directories such as `node_modules/` and `dist/` are not part of the source structure above.
 
@@ -168,7 +213,6 @@ npm run preview
 
 ## Limitations
 
-- The UI is available only in Russian.
 - Data is held only in React state. Refreshing the page or restarting the wizard clears it.
 - There is no backend, account system, authentication, or data synchronization.
 - QR generation occurs only after the form is submitted; there is no live QR preview.

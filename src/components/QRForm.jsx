@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { versions } from './VersionSelector';
 import NavigationHeader from './NavigationHeader';
 import NavigationFooter from './NavigationFooter';
 
-// Валидация
 const isValidEmail = (email) =>
   email.length === 0 || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -11,6 +11,7 @@ const isValidPhone = (phone) =>
   phone.length === 0 || /^[\d+\-\s()]+$/.test(phone);
 
 const QRForm = ({ version, onBack, onFinish }) => {
+  const { t } = useTranslation();
   const verData = versions.find((v) => v.id === version);
 
   const initialForm = {};
@@ -26,10 +27,9 @@ const QRForm = ({ version, onBack, onFinish }) => {
   };
 
   const handleBlur = (field) => {
-    setTouched((t) => ({ ...t, [field]: true }));
+    setTouched((tPrev) => ({ ...tPrev, [field]: true }));
   };
 
-  // Генерация vCard
   const generateVCard = () => {
     let lines = ["BEGIN:VCARD", `VERSION:${version}`];
 
@@ -68,7 +68,6 @@ const QRForm = ({ version, onBack, onFinish }) => {
     return lines.join("\n");
   };
 
-  // Валидация
   const nameValid = form.name.trim().length > 0;
   const emailValid = isValidEmail(form.email);
   const phoneValid = isValidPhone(form.phone);
@@ -87,77 +86,80 @@ const QRForm = ({ version, onBack, onFinish }) => {
       <NavigationHeader
         currentStep={2}
         totalSteps={4}
-        title={`Заполните данные для ${verData.title}`}
+        title={t('form.heading', { version: verData.title })}
       />
-      
+
       <div className="card">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {verData.fields.map(({ name, label, required }, index) => (
-              <div 
-                key={name}
-                className="animate-slideInRight"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <label htmlFor={name} className="block font-semibold mb-3 text-gray-800">
-                  {label} {required && <span className="text-red-500">*</span>}
-                </label>
-                
-                <input
-                  id={name}
-                  name={name}
-                  type="text"
-                  value={form[name]}
-                  onChange={(e) => handleChange(name, e.target.value)}
-                  onBlur={() => handleBlur(name)}
-                  className={`input-field ${
-                    touched[name] && required && form[name].trim().length === 0
-                      ? 'error'
-                      : touched[name] && (name === "email" && !emailValid)
-                      ? 'error'
-                      : touched[name] && (name === "phone" && !phoneValid)
-                      ? 'error'
-                      : ''
-                  }`}
-                  placeholder={required ? `${label} (обязательно)` : label}
-                  aria-invalid={
-                    touched[name] && required && form[name].trim().length === 0
-                      ? "true"
-                      : touched[name] && (name === "email" && !emailValid)
-                      ? "true"
-                      : touched[name] && (name === "phone" && !phoneValid)
-                      ? "true"
-                      : "false"
-                  }
-                />
-                
-                {touched[name] && required && form[name].trim().length === 0 && (
-                  <p className="text-red-500 text-sm mt-2 flex items-center">
-                    <span className="mr-1">⚠️</span>
-                    {label} обязательно
-                  </p>
-                )}
-                {touched[name] && name === "email" && !emailValid && form[name].length > 0 && (
-                  <p className="text-red-500 text-sm mt-2 flex items-center">
-                    <span className="mr-1">⚠️</span>
-                    Некорректный email
-                  </p>
-                )}
-                {touched[name] && name === "phone" && !phoneValid && form[name].length > 0 && (
-                  <p className="text-red-500 text-sm mt-2 flex items-center">
-                    <span className="mr-1">⚠️</span>
-                    Некорректный телефон
-                  </p>
-                )}
-              </div>
-            ))}
+            {verData.fields.map(({ name, labelKey, required }, index) => {
+              const label = t(labelKey);
+              return (
+                <div
+                  key={name}
+                  className="animate-slideInRight"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <label htmlFor={name} className="block font-semibold mb-3 text-gray-800 dark:text-gray-100">
+                    {label} {required && <span className="text-red-500">*</span>}
+                  </label>
+
+                  <input
+                    id={name}
+                    name={name}
+                    type="text"
+                    value={form[name]}
+                    onChange={(e) => handleChange(name, e.target.value)}
+                    onBlur={() => handleBlur(name)}
+                    className={`input-field ${
+                      touched[name] && required && form[name].trim().length === 0
+                        ? 'error'
+                        : touched[name] && (name === "email" && !emailValid)
+                        ? 'error'
+                        : touched[name] && (name === "phone" && !phoneValid)
+                        ? 'error'
+                        : ''
+                    }`}
+                    placeholder={required ? t('form.placeholderRequired', { label }) : t('form.placeholder', { label })}
+                    aria-invalid={
+                      touched[name] && required && form[name].trim().length === 0
+                        ? "true"
+                        : touched[name] && (name === "email" && !emailValid)
+                        ? "true"
+                        : touched[name] && (name === "phone" && !phoneValid)
+                        ? "true"
+                        : "false"
+                    }
+                  />
+
+                  {touched[name] && required && form[name].trim().length === 0 && (
+                    <p className="text-red-500 text-sm mt-2 flex items-center">
+                      <span className="mr-1">⚠️</span>
+                      {t('form.errRequired', { label })}
+                    </p>
+                  )}
+                  {touched[name] && name === "email" && !emailValid && form[name].length > 0 && (
+                    <p className="text-red-500 text-sm mt-2 flex items-center">
+                      <span className="mr-1">⚠️</span>
+                      {t('form.errEmail')}
+                    </p>
+                  )}
+                  {touched[name] && name === "phone" && !phoneValid && form[name].length > 0 && (
+                    <p className="text-red-500 text-sm mt-2 flex items-center">
+                      <span className="mr-1">⚠️</span>
+                      {t('form.errPhone')}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           <NavigationFooter
             onBack={onBack}
             onNext={handleSubmit}
             nextDisabled={!formValid}
-            nextLabel="Создать QR-код"
+            nextLabel={t('form.submit')}
             isSubmit={true}
           />
         </form>

@@ -3,4 +3,5 @@ dist/
 .DS_Store
 .claude/
 .sisyphus/
+.idea
 CLAUDE.md

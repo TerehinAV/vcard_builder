@@ -1,0 +1,77 @@
+{
+  "welcome": {
+    "title": "Create your QR business card",
+    "subtitle": "A modern app for creating",
+    "subtitleHighlight": "personal QR codes",
+    "subtitleEnd": "with contact information",
+    "featureUniversalityTitle": "🎯 Versatility",
+    "featureUniversalityDesc": "Luggage tags, business cards, device stickers",
+    "featureCompatibilityTitle": "📱 Compatibility",
+    "featureCompatibilityDesc": "Works with any device and scanner",
+    "featureSecurityTitle": "🔒 Privacy",
+    "featureSecurityDesc": "Data is processed only on your device",
+    "featureSpeedTitle": "⚡ Speed",
+    "featureSpeedDesc": "Create a QR code in just a few seconds",
+    "startButton": "Start creating"
+  },
+  "nav": {
+    "next": "Next",
+    "back": "Back",
+    "backArrow": "← Back",
+    "stepProgress": "Step {{current}} of {{total}}",
+    "stepFinal": "Step 4 of 4 • Done"
+  },
+  "versions": {
+    "screenTitle": "Choose a vCard version",
+    "selectVersion": "Select version {{version}}",
+    "moreFields": "+{{count}} more",
+    "v21Subtitle": "Simple compatible card for offline tags and legacy devices",
+    "v30Subtitle": "Recommended format for Android, iOS and email clients",
+    "v40Subtitle": "Social links, GPS and modern fields support",
+    "fields": {
+      "name": "Name",
+      "phone": "Phone",
+      "email": "Email",
+      "org": "Company/Organization",
+      "note": "Note",
+      "social": "Social (URLs, comma-separated)",
+      "geo": "GPS (lat,long, comma-separated)",
+      "impp": "Messengers (comma-separated)"
+    }
+  },
+  "form": {
+    "heading": "Fill in the data for {{version}}",
+    "placeholderRequired": "{{label}} (required)",
+    "placeholder": "{{label}}",
+    "errRequired": "{{label}} is required",
+    "errEmail": "Invalid email",
+    "errPhone": "Invalid phone",
+    "submit": "Generate"
+  },
+  "result": {
+    "heading": "🎉 Your QR business card is ready!",
+    "description": "You can now copy or download your QR code",
+    "qrTooltip": "Click to copy the QR code as an image",
+    "qrHelper": "Click the QR code to copy it as a framed image",
+    "copyImage": "Copy",
+    "copyImageFull": "Copy as image",
+    "copying": "Copying...",
+    "downloadPng": "Download PNG",
+    "downloadImage": "Download image",
+    "saveImage": "Save image",
+    "saveQrTitle": "Save QR code",
+    "saveQrHintMobile": "📱 Long-press the image above, then choose 'Save Image' or 'Copy'.",
+    "saveQrHintDesktop": "💻 Or right-click → 'Save image as…'.",
+    "close": "Close",
+    "copyText": "vCard text",
+    "copyTextFull": "Copy text",
+    "restart": "Create a new card",
+    "alertCopiedImage": "QR code copied as image to clipboard!",
+    "alertCopiedText": "QR code copied as text to clipboard (image not supported)",
+    "alertCopyFailed": "Failed to copy QR code",
+    "alertDownloaded": "QR code downloaded as image!",
+    "alertDownloadFailed": "Failed to download QR code",
+    "alertVCopied": "vCard text copied to clipboard!",
+    "alertVCopyFailed": "Failed to copy text"
+  }
+}
