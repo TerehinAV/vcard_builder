@@ -1,0 +1,7 @@
+name = "vcard-send-qr"
+main = "send-qr.js"
+compatibility_date = "2024-12-01"
+
+# Required secrets — set via `wrangler secret put`:
+#   wrangler secret put BOT_TOKEN
+#   wrangler secret put WEBAPP_URL    # e.g. https://terehinav.github.io

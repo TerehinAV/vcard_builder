@@ -117,9 +117,16 @@ PNG downloads are generated with `qrcode` in the browser. The separate **vCard t
 
 ### Telegram WebApp
 
-When the app is opened inside a Telegram WebApp, the WebView sandbox blocks both `navigator.clipboard.write()` for images and the `<a download>` attribute for files. To work around this without a backend, the "Copy as image" and "Download PNG" buttons are collapsed into a single **Save image** action that opens a modal showing the QR code as a large PNG (`<img>` rendered from a `qrcode`-generated data URL). The user then long-presses (mobile) or right-clicks (desktop) the image and selects the native "Save Image" / "Copy" menu entry.
+When the app is opened inside a Telegram WebApp, the WebView sandbox blocks both `navigator.clipboard.write()` for images and the `<a download>` attribute for files. Long-press on `<img>` also fails in WebApp bot mode (it works in Telegram's built-in browser, but not when launched as a bot WebApp).
+
+To deliver the QR image to the user, an optional Cloudflare Worker (`worker/`) sends the generated PNG to the bot chat via Bot API `sendPhoto`. The WebApp detects the worker URL via the `VITE_WORKER_URL` environment variable:
+
+- **`VITE_WORKER_URL` set:** the "Send to chat" button POSTs the PNG and the signed `Telegram.WebApp.initData` to the worker, which forwards it as a photo to the user's chat with the bot. The WebApp then calls `Telegram.WebApp.close()` and the user sees the photo arrive in the chat.
+- **`VITE_WORKER_URL` unset:** the Telegram flow falls back to a modal showing a large PNG with long-press instructions. This works in Telegram's built-in browser but is non-functional in WebApp bot mode.
 
 The vCard-text copy action continues to work inside Telegram, because `navigator.clipboard.writeText()` is permitted by the WebView sandbox.
+
+Full worker setup and architecture: [`TELEGRAM.md`](./TELEGRAM.md) and [`worker/README.md`](./worker/README.md).
 
 ## Technology Stack
 

@@ -1,33 +1,83 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { QRCodeSVG } from 'qrcode.react';
 import { generateQRDataURL } from '../utils/qrUtils';
+import { useTelegram } from '../hooks/useTelegram';
+
+const WORKER_URL = import.meta.env.VITE_WORKER_URL || '';
 
 const FinalStepTelegram = ({ qrValue, onRestart }) => {
   const { t } = useTranslation();
-  const [saveModalOpen, setSaveModalOpen] = useState(false);
-  const [saveImageUrl, setSaveImageUrl] = useState(null);
+  const telegram = useTelegram();
+  const [isSending, setIsSending] = useState(false);
 
-  const openSaveModal = useCallback(async () => {
-    if (!saveImageUrl) {
-      const url = await generateQRDataURL(qrValue, 600);
-      setSaveImageUrl(url);
+  const sendToChat = useCallback(async () => {
+    if (!WORKER_URL) {
+      alert(t('result.alertNoWorker'));
+      return;
     }
-    setSaveModalOpen(true);
-  }, [qrValue, saveImageUrl]);
+    if (!telegram.initData) {
+      alert(t('result.alertBotNotStarted'));
+      return;
+    }
 
-  const closeSaveModal = useCallback(() => {
-    setSaveModalOpen(false);
-  }, []);
+    setIsSending(true);
+    try {
+      const dataUrl = await generateQRDataURL(qrValue, 600);
+      const response = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData: telegram.initData, image: dataUrl }),
+      });
+      const data = await response.json().catch(() => ({}));
 
-  useEffect(() => {
-    if (!saveModalOpen) return;
-    const handleKey = (e) => {
-      if (e.key === 'Escape') closeSaveModal();
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [saveModalOpen, closeSaveModal]);
+      if (data.ok) {
+        telegram.close();
+        return;
+      }
+
+      if (data.error === 'bot_not_started') {
+        alert(t('result.alertBotNotStarted'));
+      } else {
+        alert(t('result.alertSendFailed'));
+      }
+    } catch (error) {
+      console.error('Send error:', error);
+      alert(t('result.alertSendFailed'));
+    } finally {
+      setIsSending(false);
+    }
+  }, [qrValue, telegram, t]);
+
+  const openInViewer = useCallback(async () => {
+    setIsSending(true);
+    try {
+      const dataUrl = await generateQRDataURL(qrValue, 600);
+      const base64 = dataUrl.replace(/^data:image\/png;base64,/, '');
+      const viewerUrl = new URL('viewer.html', window.location.href).href;
+      const fullUrl = `${viewerUrl}#${base64}`;
+
+      const webApp = window.Telegram?.WebApp;
+      if (webApp?.openLink) {
+        webApp.openLink(fullUrl);
+      } else {
+        window.open(fullUrl, '_blank');
+      }
+    } catch (error) {
+      console.error('Viewer error:', error);
+      alert(t('result.alertSendFailed'));
+    } finally {
+      setIsSending(false);
+    }
+  }, [qrValue, t]);
+
+  const handleSaveImage = useCallback(async () => {
+    if (WORKER_URL) {
+      await sendToChat();
+    } else {
+      await openInViewer();
+    }
+  }, [sendToChat, openInViewer]);
 
   const handleCopyText = async () => {
     try {
@@ -37,6 +87,14 @@ const FinalStepTelegram = ({ qrValue, onRestart }) => {
       alert(t('result.alertVCopyFailed'));
     }
   };
+
+  const primaryLabel = WORKER_URL
+    ? (isSending ? t('result.sending') : t('result.sendToChat'))
+    : t('result.openImage');
+  const primaryAria = WORKER_URL ? t('result.sendToChat') : t('result.openImage');
+  const primaryHint = WORKER_URL
+    ? (isSending ? t('result.sending') : t('result.qrHelper'))
+    : t('result.openImageHint');
 
   return (
     <div className="max-w-2xl mx-auto text-center animate-fadeInUp">
@@ -65,29 +123,37 @@ const FinalStepTelegram = ({ qrValue, onRestart }) => {
           <div className="card">
             <div
               className="qr-container mb-6"
-              title={t('result.saveQrTitle')}
-              onClick={openSaveModal}
-              style={{ cursor: 'pointer' }}
+              title={primaryAria}
+              onClick={handleSaveImage}
+              style={{ cursor: isSending ? 'wait' : 'pointer' }}
             >
               <QRCodeSVG value={qrValue} size={280} />
             </div>
 
             <p className="text-gray-600 dark:text-gray-300 mb-2">
-              {t('result.saveQrHintMobile')}
+              {primaryHint}
             </p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-xl mx-auto">
           <button
-            onClick={openSaveModal}
+            onClick={handleSaveImage}
+            disabled={isSending}
             className="btn-success flex items-center justify-center"
-            aria-label={t('result.saveImage')}
+            aria-label={primaryAria}
           >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            {t('result.saveImage')}
+            {isSending ? (
+              <svg className="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            ) : (
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            )}
+            {primaryLabel}
           </button>
 
           <button
@@ -115,50 +181,6 @@ const FinalStepTelegram = ({ qrValue, onRestart }) => {
           </button>
         </div>
       </div>
-
-      {saveModalOpen && (
-        <div
-          className="modal-backdrop"
-          onClick={closeSaveModal}
-          role="dialog"
-          aria-modal="true"
-          aria-label={t('result.saveQrTitle')}
-        >
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              onClick={closeSaveModal}
-              className="modal-close"
-              aria-label={t('result.close')}
-            >
-              ×
-            </button>
-            <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 text-center">
-              {t('result.saveQrTitle')}
-            </h3>
-            {saveImageUrl && (
-              <img
-                src={saveImageUrl}
-                alt="QR vCard"
-                className="modal-qr-image"
-              />
-            )}
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-              {t('result.saveQrHintMobile')}
-            </p>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-              {t('result.saveQrHintDesktop')}
-            </p>
-            <button
-              type="button"
-              onClick={closeSaveModal}
-              className="btn-primary w-full"
-            >
-              {t('result.close')}
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

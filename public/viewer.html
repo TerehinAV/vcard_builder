@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>QR vCard</title>
+    <script>
+      (function () {
+        try {
+          var tg = window.Telegram && window.Telegram.WebApp;
+          var scheme = tg && tg.colorScheme;
+          if (!scheme) {
+            scheme =
+              window.matchMedia &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light';
+          }
+          if (scheme === 'dark') document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
+    <style>
+      :root {
+        --bg: #f7fafc;
+        --text: #1a202c;
+        --text-muted: #718096;
+      }
+      .dark {
+        --bg: #1a1816;
+        --text: #f5f3ef;
+        --text-muted: #a8a29e;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: calc(24px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        min-height: 100vh;
+        transition: background 0.3s ease, color 0.3s ease;
+      }
+      .container {
+        max-width: 480px;
+        margin: 0 auto;
+        text-align: center;
+      }
+      h1 {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0 0 8px;
+      }
+      .hint {
+        color: var(--text-muted);
+        font-size: 14px;
+        line-height: 1.5;
+        margin: 0 0 24px;
+      }
+      .image-wrap {
+        background: white;
+        padding: 24px;
+        border-radius: 16px;
+        display: inline-block;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        margin-bottom: 24px;
+      }
+      .image-wrap img {
+        display: block;
+        width: 100%;
+        max-width: 360px;
+        height: auto;
+        -webkit-touch-callout: default;
+        -webkit-user-select: auto;
+        user-select: auto;
+      }
+      .done-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 14px 28px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        width: 100%;
+        transition: transform 0.2s ease;
+      }
+      .done-btn:active {
+        transform: scale(0.98);
+      }
+      .error {
+        color: #ef4444;
+        margin-top: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 id="title"></h1>
+      <p class="hint" id="hint"></p>
+      <div class="image-wrap" id="image-wrap" hidden>
+        <img id="qr" alt="QR vCard" />
+      </div>
+      <p class="error" id="error" hidden></p>
+      <button class="done-btn" id="done"></button>
+    </div>
+    <script>
+      (function () {
+        var STRINGS = {
+          ru: {
+            title: 'Ваш QR-код',
+            hint: '📱 Нажмите и удерживайте изображение, затем выберите «Сохранить изображение» или «Копировать».',
+            done: 'Готово',
+            error: 'Не удалось загрузить изображение. Вернитесь и попробуйте снова.',
+          },
+          en: {
+            title: 'Your QR code',
+            hint: '📱 Long-press the image, then choose "Save Image" or "Copy".',
+            done: 'Done',
+            error: 'Failed to load the image. Go back and try again.',
+          },
+        };
+
+        function detectLang() {
+          try {
+            var tgUser =
+              window.Telegram &&
+              window.Telegram.WebApp &&
+              window.Telegram.WebApp.initDataUnsafe &&
+              window.Telegram.WebApp.initDataUnsafe.user;
+            if (tgUser && tgUser.language_code) {
+              return tgUser.language_code.toLowerCase().split(/[-_]/)[0] === 'en' ? 'en' : 'ru';
+            }
+          } catch (e) {}
+          if (navigator.language) {
+            return navigator.language.toLowerCase().split(/[-_]/)[0] === 'en' ? 'en' : 'ru';
+          }
+          return 'ru';
+        }
+
+        var t = STRINGS[detectLang()] || STRINGS.ru;
+        document.documentElement.lang = t === STRINGS.en ? 'en' : 'ru';
+        document.getElementById('title').textContent = t.title;
+        document.getElementById('hint').textContent = t.hint;
+        document.getElementById('done').textContent = t.done;
+        document.title = t.title;
+
+        var hash = window.location.hash.slice(1);
+        var errorEl = document.getElementById('error');
+        var imageWrap = document.getElementById('image-wrap');
+        var qrImg = document.getElementById('qr');
+
+        if (hash) {
+          var src = hash.indexOf('data:') === 0 ? hash : 'data:image/png;base64,' + hash;
+          qrImg.onload = function () {
+            imageWrap.hidden = false;
+          };
+          qrImg.onerror = function () {
+            errorEl.textContent = t.error;
+            errorEl.hidden = false;
+          };
+          qrImg.src = src;
+        } else {
+          errorEl.textContent = t.error;
+          errorEl.hidden = false;
+        }
+
+        document.getElementById('done').addEventListener('click', function () {
+          if (window.history.length > 1) {
+            window.history.back();
+          } else {
+            window.close();
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

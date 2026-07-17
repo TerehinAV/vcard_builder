@@ -66,6 +66,12 @@ function readTelegram() {
       languageCode,
       colorScheme,
       themeParams: webApp.themeParams || null,
+      initData: webApp.initData || '',
+      close: () => {
+        try {
+          webApp.close();
+        } catch {}
+      },
     };
   } catch {
     return {
