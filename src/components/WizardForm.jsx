@@ -3,6 +3,8 @@ import WelcomeStep from './WelcomeStep';
 import VersionSelector from './VersionSelector';
 import QRForm from './QRForm';
 import FinalStep from './FinalStep';
+import FinalStepTelegram from './FinalStepTelegram';
+import { isTelegramWebApp } from '../utils/qrUtils';
 
 const WizardForm = () => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -48,14 +50,27 @@ const WizardForm = () => {
           />
         );
       case 3:
-        return <FinalStep qrValue={finalQRValue} onRestart={handleRestart} />;
+        return isTelegramWebApp() ? (
+          <FinalStepTelegram qrValue={finalQRValue} onRestart={handleRestart} />
+        ) : (
+          <FinalStep qrValue={finalQRValue} onRestart={handleRestart} />
+        );
       default:
         return <WelcomeStep onNext={handleNext} />;
     }
   };
 
   return (
-    <div className="min-h-screen py-8 px-4" style={{ backgroundColor: 'var(--color-background)' }}>
+    <div
+      className="min-h-screen"
+      style={{
+        backgroundColor: 'var(--color-background)',
+        paddingTop: 'calc(2rem + env(safe-area-inset-top))',
+        paddingBottom: 'calc(2rem + env(safe-area-inset-bottom))',
+        paddingLeft: 'calc(1rem + env(safe-area-inset-left))',
+        paddingRight: 'calc(1rem + env(safe-area-inset-right))',
+      }}
+    >
       <div className="container mx-auto max-w-6xl">
         {renderStep()}
       </div>

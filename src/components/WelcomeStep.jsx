@@ -31,19 +31,19 @@ const WelcomeStep = ({ onNext }) => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-            <div className="card-compact text-left">
+            <div className="feature-tile text-left">
               <h3 className="font-semibold text-gray-800 dark:text-gray-100 mb-2">{t('welcome.featureUniversalityTitle')}</h3>
               <p className="text-gray-600 dark:text-gray-300 text-sm">{t('welcome.featureUniversalityDesc')}</p>
             </div>
-            <div className="card-compact text-left">
+            <div className="feature-tile text-left">
               <h3 className="font-semibold text-gray-800 dark:text-gray-100 mb-2">{t('welcome.featureCompatibilityTitle')}</h3>
               <p className="text-gray-600 dark:text-gray-300 text-sm">{t('welcome.featureCompatibilityDesc')}</p>
             </div>
-            <div className="card-compact text-left">
+            <div className="feature-tile text-left">
               <h3 className="font-semibold text-gray-800 dark:text-gray-100 mb-2">{t('welcome.featureSecurityTitle')}</h3>
               <p className="text-gray-600 dark:text-gray-300 text-sm">{t('welcome.featureSecurityDesc')}</p>
             </div>
-            <div className="card-compact text-left">
+            <div className="feature-tile text-left">
               <h3 className="font-semibold text-gray-800 dark:text-gray-100 mb-2">{t('welcome.featureSpeedTitle')}</h3>
               <p className="text-gray-600 dark:text-gray-300 text-sm">{t('welcome.featureSpeedDesc')}</p>
             </div>

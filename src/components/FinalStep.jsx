@@ -1,46 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { QRCodeSVG } from 'qrcode.react';
-import {
-  copyQRCodeAsImage,
-  downloadQRCodeAsImage,
-  generateQRDataURL,
-} from '../utils/qrUtils';
-import { useTelegram } from '../hooks/useTelegram';
+import { copyQRCodeAsImage, downloadQRCodeAsImage } from '../utils/qrUtils';
 
 const FinalStep = ({ qrValue, onRestart }) => {
   const { t } = useTranslation();
-  const telegram = useTelegram();
   const [isLoading, setIsLoading] = useState(false);
-  const [saveModalOpen, setSaveModalOpen] = useState(false);
-  const [saveImageUrl, setSaveImageUrl] = useState(null);
-
-  const openSaveModal = useCallback(async () => {
-    if (!saveImageUrl) {
-      const url = await generateQRDataURL(qrValue, 600);
-      setSaveImageUrl(url);
-    }
-    setSaveModalOpen(true);
-  }, [qrValue, saveImageUrl]);
-
-  const closeSaveModal = useCallback(() => {
-    setSaveModalOpen(false);
-  }, []);
-
-  useEffect(() => {
-    if (!saveModalOpen) return;
-    const handleKey = (e) => {
-      if (e.key === 'Escape') closeSaveModal();
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [saveModalOpen, closeSaveModal]);
 
   const handleCopyImage = async () => {
-    if (telegram.isAvailable) {
-      await openSaveModal();
-      return;
-    }
     setIsLoading(true);
     try {
       await copyQRCodeAsImage('qr-container', qrValue);
@@ -59,10 +26,6 @@ const FinalStep = ({ qrValue, onRestart }) => {
   };
 
   const handleDownload = async () => {
-    if (telegram.isAvailable) {
-      await openSaveModal();
-      return;
-    }
     try {
       await downloadQRCodeAsImage(qrValue, 'qr-vcard.png');
       alert(t('result.alertDownloaded'));
@@ -80,58 +43,6 @@ const FinalStep = ({ qrValue, onRestart }) => {
       alert(t('result.alertVCopyFailed'));
     }
   };
-
-  const imageButtons = telegram.isAvailable
-    ? [
-        {
-          key: 'save',
-          label: t('result.saveImage'),
-          ariaLabel: t('result.saveImage'),
-          onClick: handleCopyImage,
-          className: 'btn-success',
-          icon: (
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-          ),
-        },
-      ]
-    : [
-        {
-          key: 'copy',
-          label: isLoading ? t('result.copying') : t('result.copyImage'),
-          ariaLabel: t('result.copyImageFull'),
-          onClick: handleCopyImage,
-          className: 'btn-success',
-          disabled: isLoading,
-          icon: isLoading ? (
-            <svg className="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-          ) : (
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-          ),
-        },
-        {
-          key: 'download',
-          label: t('result.downloadPng'),
-          ariaLabel: t('result.downloadImage'),
-          onClick: handleDownload,
-          className: 'btn-icon',
-          icon: (
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-            </svg>
-          ),
-        },
-      ];
-
-  const gridColsClass = telegram.isAvailable
-    ? 'grid-cols-1 md:grid-cols-2'
-    : 'grid-cols-1 md:grid-cols-3';
 
   return (
     <div className="max-w-2xl mx-auto text-center animate-fadeInUp">
@@ -165,7 +76,7 @@ const FinalStep = ({ qrValue, onRestart }) => {
               id="qr-container"
               className={`qr-container mb-6 ${isLoading ? 'opacity-50' : ''}`}
               title={t('result.qrTooltip')}
-              onClick={telegram.isAvailable ? openSaveModal : handleCopyImage}
+              onClick={handleCopyImage}
               style={{ cursor: isLoading ? 'wait' : 'pointer' }}
             >
               <QRCodeSVG value={qrValue} size={280} />
@@ -177,19 +88,41 @@ const FinalStep = ({ qrValue, onRestart }) => {
           </div>
         </div>
 
-        <div className={`grid ${gridColsClass} gap-4 max-w-xl mx-auto`}>
-          {imageButtons.map((btn) => (
-            <button
-              key={btn.key}
-              onClick={btn.onClick}
-              disabled={btn.disabled}
-              className={`${btn.className} flex items-center justify-center`}
-              aria-label={btn.ariaLabel}
-            >
-              {btn.icon}
-              {btn.label}
-            </button>
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-xl mx-auto">
+          <button
+            onClick={handleCopyImage}
+            disabled={isLoading}
+            className="btn-success flex items-center justify-center"
+            aria-label={t('result.copyImageFull')}
+          >
+            {isLoading ? (
+              <>
+                <svg className="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {t('result.copying')}
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                {t('result.copyImage')}
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={handleDownload}
+            className="btn-icon flex items-center justify-center"
+            aria-label={t('result.downloadImage')}
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+            </svg>
+            {t('result.downloadPng')}
+          </button>
 
           <button
             onClick={handleCopyText}
@@ -216,50 +149,6 @@ const FinalStep = ({ qrValue, onRestart }) => {
           </button>
         </div>
       </div>
-
-      {saveModalOpen && (
-        <div
-          className="modal-backdrop"
-          onClick={closeSaveModal}
-          role="dialog"
-          aria-modal="true"
-          aria-label={t('result.saveQrTitle')}
-        >
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              onClick={closeSaveModal}
-              className="modal-close"
-              aria-label={t('result.close')}
-            >
-              ×
-            </button>
-            <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 text-center">
-              {t('result.saveQrTitle')}
-            </h3>
-            {saveImageUrl && (
-              <img
-                src={saveImageUrl}
-                alt="QR vCard"
-                className="modal-qr-image"
-              />
-            )}
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-              {t('result.saveQrHintMobile')}
-            </p>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-              {t('result.saveQrHintDesktop')}
-            </p>
-            <button
-              type="button"
-              onClick={closeSaveModal}
-              className="btn-primary w-full"
-            >
-              {t('result.close')}
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

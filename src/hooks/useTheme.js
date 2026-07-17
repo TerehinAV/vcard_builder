@@ -44,6 +44,15 @@ export function useTheme() {
     }
     apply(scheme);
 
+    // Sync Telegram's native header (close button + context menu bar) with the app background
+    // to avoid a visual seam between the OS chrome and our content.
+    if (telegram.isAvailable) {
+      const headerBg = scheme === 'dark' ? '#1a1816' : '#f7fafc';
+      try {
+        window.Telegram?.WebApp?.setHeaderColor?.(headerBg);
+      } catch {}
+    }
+
     // Subscribe to system theme changes when Telegram is not in control.
     if (!telegram.isAvailable) {
       mediaQuery.addEventListener('change', handleMediaChange);

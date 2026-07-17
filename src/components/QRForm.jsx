@@ -100,9 +100,11 @@ const QRForm = ({ version, onBack, onFinish }) => {
                   className="animate-slideInRight"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <label htmlFor={name} className="block font-semibold mb-3 text-gray-800 dark:text-gray-100">
-                    {label} {required && <span className="text-red-500">*</span>}
-                  </label>
+                  <div className="mb-3 md:min-h-[2.5rem] md:flex md:items-end">
+                    <label htmlFor={name} className="block font-semibold text-gray-800 dark:text-gray-100">
+                      {label} {required && <span className="text-red-500">*</span>}
+                    </label>
+                  </div>
 
                   <input
                     id={name}
@@ -169,3 +171,4 @@ const QRForm = ({ version, onBack, onFinish }) => {
 };
 
 export default QRForm;
+
